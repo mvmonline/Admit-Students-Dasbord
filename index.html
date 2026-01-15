@@ -3,115 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Portal</title>
+    <title>Student Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 90%; max-width: 400px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
         .hidden { display: none; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .profile-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 15px; border: 3px solid #1a73e8; }
-        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
-        .label { font-weight: bold; color: #555; }
-        .sig-img { width: 100%; max-width: 150px; margin-top: 10px; border-bottom: 1px solid #000; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .profile-img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid #007bff; margin-bottom: 15px; }
+        .info-box { text-align: left; margin-top: 20px; border-top: 1px solid #eee; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
+        .label { font-weight: bold; color: #666; }
+        .signature { width: 150px; border-bottom: 1px solid #333; margin-top: 10px; }
         #qrcode { margin-top: 20px; display: flex; justify-content: center; }
-        .error { color: red; font-size: 13px; text-align: center; margin-top: 10px; }
+        #status { margin-top: 15px; font-size: 14px; color: #d9534f; }
     </style>
 </head>
 <body>
 
 <div class="card" id="loginBox">
-    <h2 style="text-align:center">Student Login</h2>
-    <input type="text" id="sid" placeholder="Student ID (e.g. 101)">
+    <h2>Student Login</h2>
+    <input type="text" id="sid" placeholder="Student ID">
     <input type="date" id="dob">
-    <button onclick="login()">Login</button>
-    <div id="errMsg" class="error"></div>
+    <button onclick="login()">View My Profile</button>
+    <div id="status"></div>
 </div>
 
 <div class="card hidden" id="dash">
-    <img id="p_img" class="profile-img" src="" alt="Photo">
-    <h3 id="p_name" style="text-align:center; margin-bottom:20px;"></h3>
-    <div id="p_details"></div>
-    <div style="text-align:center; margin-top:15px;">
+    <img id="p_img" class="profile-img" src="" alt="Student Photo">
+    <h3 id="p_name" style="margin:0; color:#333;"></h3>
+    <div class="info-box" id="p_details"></div>
+    <div style="margin-top:20px;">
         <div class="label">Signature</div>
-        <img id="p_sig" class="sig-img" src="" alt="Signature">
+        <img id="p_sig" class="signature" src="" alt="Signature">
     </div>
     <div id="qrcode"></div>
-    <button onclick="location.reload()" style="background:#666;">Back</button>
+    <button onclick="location.reload()" style="background:#6c757d; margin-top:20px;">Logout</button>
 </div>
 
 <script>
+    // YOUR CSV LINK
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvTXVjYcIzEZtESe3zXl2tGIcwPHam8HMPLbjhoBhLp2Mkp3uc_lI9cx12WCv_01psP1vxnSrO7ReV/pub?output=csv';
 
     function fixDriveUrl(url) {
-        if (!url) return "";
-        const id = url.match(/[-\w]{25,}/);
-        return id ? `https://docs.google.com/uc?export=view&id=${id[0]}` : url;
-    }
-
-    // Helper to normalize dates for comparison
-    function formatDate(dateStr) {
-        const d = new Date(dateStr);
-        if (isNaN(d.getTime())) return dateStr; 
-        return d.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+        if (!url) return "https://via.placeholder.com/150";
+        const idMatch = url.match(/[-\w]{25,}/);
+        return idMatch ? `https://docs.google.com/uc?export=view&id=${idMatch[0]}` : url;
     }
 
     function login() {
         const inputId = document.getElementById('sid').value.trim();
-        const inputDob = document.getElementById('dob').value; // Always YYYY-MM-DD
-        const err = document.getElementById('errMsg');
+        const inputDob = document.getElementById('dob').value;
+        const status = document.getElementById('status');
 
-        if(!inputId || !inputDob) {
-            err.innerText = "Please enter both ID and DOB";
+        if (!inputId || !inputDob) {
+            status.innerText = "Please enter both fields.";
             return;
         }
 
-        err.innerText = "Loading data...";
+        status.style.color = "blue";
+        status.innerText = "Connecting to database...";
 
         Papa.parse(CSV_URL, {
             download: true,
             header: true,
             skipEmptyLines: true,
+            error: function(err) {
+                status.style.color = "red";
+                status.innerText = "Error: Could not fetch Google Sheet. Make sure it is 'Published to Web'.";
+            },
             complete: function(results) {
-                const student = results.data.find(row => {
-                    const sID = String(row['Student ID'] || "").trim();
-                    const sDOB = formatDate(row['Date of Birth'] || "");
-                    return sID === inputId && sDOB === inputDob;
+                const data = results.data;
+                
+                // Find student - Using Case-Insensitive logic
+                const student = data.find(row => {
+                    // This searches for the column even if headers have extra spaces or different capitalization
+                    const rowID = row['Student ID'] || row['STUDENT ID'] || row['student id'];
+                    const rowDOB = row['Date of Birth'] || row['DATE OF BIRTH'] || row['date of birth'];
+                    
+                    // Normalize date format from Sheet to YYYY-MM-DD
+                    let formattedSheetDate = "";
+                    if(rowDOB) {
+                        const d = new Date(rowDOB);
+                        if(!isNaN(d)) formattedSheetDate = d.toISOString().split('T')[0];
+                    }
+
+                    return String(rowID).trim() === inputId && formattedSheetDate === inputDob;
                 });
 
                 if (student) {
-                    showData(student);
+                    showDashboard(student);
                 } else {
-                    err.innerText = "Error: Student ID or DOB not found.";
+                    status.style.color = "red";
+                    status.innerText = "Wrong ID or Date of Birth. Check your Sheet format.";
                 }
             }
         });
     }
 
-    function showData(s) {
+    function showDashboard(s) {
         document.getElementById('loginBox').classList.add('hidden');
-        document.getElementById('dash').classList.remove('hidden');
+        const dash = document.getElementById('dash');
+        dash.classList.remove('hidden');
 
-        document.getElementById('p_img').src = fixDriveUrl(s['Photo URL']);
-        document.getElementById('p_sig').src = fixDriveUrl(s['Signature URL']);
-        document.getElementById('p_name').innerText = s['Student Name'];
+        // Map data (Handling common header names)
+        const name = s['Student Name'] || s['STUDENT NAME'] || "Unknown Student";
+        const photo = s['Photo URL'] || s['PHOTO URL'];
+        const sig = s['Signature URL'] || s['SIGNATURE URL'];
 
-        const fields = ['Class', 'Section', 'Roll No', 'Father\'s Name', 'Phone Number', 'Email ID'];
-        document.getElementById('p_details').innerHTML = fields.map(f => `
-            <div class="info-row">
-                <span class="label">${f}:</span>
-                <span>${s[f] || 'N/A'}</span>
-            </div>
-        `).join('');
+        document.getElementById('p_img').src = fixDriveUrl(photo);
+        document.getElementById('p_sig').src = fixDriveUrl(sig);
+        document.getElementById('p_name').innerText = name;
 
+        const displayFields = {
+            "Class": s['Class'],
+            "Section": s['Section'],
+            "Roll No": s['Roll No'],
+            "Father's Name": s['Father\'s Name'],
+            "Phone": s['Phone Number']
+        };
+
+        let html = "";
+        for (const [label, value] of Object.entries(displayFields)) {
+            html += `<div class="info-row"><span class="label">${label}:</span><span>${value || 'N/A'}</span></div>`;
+        }
+        document.getElementById('p_details').innerHTML = html;
+
+        // Generate QR Code
         new QRCode(document.getElementById("qrcode"), {
-            text: s['Student ID'],
-            width: 100,
-            height: 100
+            text: `STUDENT:${s['Student ID']}`,
+            width: 120,
+            height: 120
         });
     }
 </script>
+
 </body>
 </html>
