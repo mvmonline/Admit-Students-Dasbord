@@ -3,165 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Data Portal</title>
+    <title>Student Portal</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        
-        .container { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; transition: all 0.3s ease; }
-        h2 { text-align: center; color: var(--primary); margin-bottom: 1.5rem; }
-        
-        /* Login Styles */
-        .input-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; color: #666; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; }
-        button:hover { background: #2980b9; }
-        
-        /* Dashboard Styles */
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 90%; max-width: 400px; }
         .hidden { display: none; }
-        .profile-section { text-align: center; margin-bottom: 20px; }
-        .photo-frame { width: 120px; height: 120px; border-radius: 10px; border: 3px solid var(--accent); object-fit: cover; margin-bottom: 10px; background: #f9f9f9; }
-        
-        .info-grid { border-top: 2px solid #eee; padding-top: 15px; }
-        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
-        .info-label { font-weight: bold; color: #7f8c8d; }
-        .info-value { color: #2c3e50; text-align: right; }
-        
-        .sig-section { margin-top: 15px; text-align: center; }
-        .sig-img { max-width: 150px; height: auto; border-bottom: 1px solid #333; margin-top: 5px; }
-        
-        #qrcode { display: flex; justify-content: center; margin-top: 20px; padding: 10px; background: white; }
-        .error { color: #e74c3c; text-align: center; font-size: 14px; margin-top: 10px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .profile-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 15px; border: 3px solid #1a73e8; }
+        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+        .label { font-weight: bold; color: #555; }
+        .sig-img { width: 100%; max-width: 150px; margin-top: 10px; border-bottom: 1px solid #000; }
+        #qrcode { margin-top: 20px; display: flex; justify-content: center; }
+        .error { color: red; font-size: 13px; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container" id="app">
-    <div id="login-form">
-        <h2>Student Login</h2>
-        <div class="input-group">
-            <label>Student ID</label>
-            <input type="text" id="sid" placeholder="Enter your ID (e.g. 101)">
-        </div>
-        <div class="input-group">
-            <label>Date of Birth</label>
-            <input type="date" id="dob">
-        </div>
-        <button onclick="handleLogin()">Verify Details</button>
-        <div id="msg" class="error"></div>
+<div class="card" id="loginBox">
+    <h2 style="text-align:center">Student Login</h2>
+    <input type="text" id="sid" placeholder="Student ID (e.g. 101)">
+    <input type="date" id="dob">
+    <button onclick="login()">Login</button>
+    <div id="errMsg" class="error"></div>
+</div>
+
+<div class="card hidden" id="dash">
+    <img id="p_img" class="profile-img" src="" alt="Photo">
+    <h3 id="p_name" style="text-align:center; margin-bottom:20px;"></h3>
+    <div id="p_details"></div>
+    <div style="text-align:center; margin-top:15px;">
+        <div class="label">Signature</div>
+        <img id="p_sig" class="sig-img" src="" alt="Signature">
     </div>
-
-    <div id="dashboard" class="hidden">
-        <div class="profile-section">
-            <img id="photo" class="photo-frame" src="" alt="Student Photo">
-            <h3 id="student-name" style="margin: 5px 0;"></h3>
-            <span id="student-class" style="color: var(--accent); font-weight: bold;"></span>
-        </div>
-
-        <div class="info-grid" id="details-list">
-            </div>
-
-        <div class="sig-section">
-            <div class="info-label">Student Signature</div>
-            <img id="signature" class="sig-img" src="" alt="Signature">
-        </div>
-
-        <div id="qrcode"></div>
-        
-        <button onclick="window.location.reload()" style="background: #95a5a6;">Close Dashboard</button>
-    </div>
+    <div id="qrcode"></div>
+    <button onclick="location.reload()" style="background:#666;">Back</button>
 </div>
 
 <script>
-    // Your provided published CSV link
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvTXVjYcIzEZtESe3zXl2tGIcwPHam8HMPLbjhoBhLp2Mkp3uc_lI9cx12WCv_01psP1vxnSrO7ReV/pub?output=csv';
 
-    // Helper to fix Google Drive View Links to Direct Image Links
-    function formatDriveUrl(url) {
-        if (!url || !url.includes('drive.google.com')) return url;
-        const idMatch = url.match(/\/d\/([^/]+)/);
-        if (idMatch && idMatch[1]) {
-            return `https://docs.google.com/uc?export=view&id=${idMatch[1]}`;
-        }
-        return url;
+    function fixDriveUrl(url) {
+        if (!url) return "";
+        const id = url.match(/[-\w]{25,}/);
+        return id ? `https://docs.google.com/uc?export=view&id=${id[0]}` : url;
     }
 
-    function handleLogin() {
-        const inputId = document.getElementById('sid').value.trim();
-        const inputDob = document.getElementById('dob').value;
-        const errorMsg = document.getElementById('msg');
+    // Helper to normalize dates for comparison
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr; 
+        return d.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+    }
 
-        if (!inputId || !inputDob) {
-            errorMsg.innerText = "Please fill in both fields.";
+    function login() {
+        const inputId = document.getElementById('sid').value.trim();
+        const inputDob = document.getElementById('dob').value; // Always YYYY-MM-DD
+        const err = document.getElementById('errMsg');
+
+        if(!inputId || !inputDob) {
+            err.innerText = "Please enter both ID and DOB";
             return;
         }
+
+        err.innerText = "Loading data...";
 
         Papa.parse(CSV_URL, {
             download: true,
             header: true,
+            skipEmptyLines: true,
             complete: function(results) {
-                const data = results.data;
-                // Find student matching ID and DOB
-                const student = data.find(row => 
-                    String(row['Student ID']).trim() === inputId && 
-                    row['Date of Birth'] === inputDob
-                );
+                const student = results.data.find(row => {
+                    const sID = String(row['Student ID'] || "").trim();
+                    const sDOB = formatDate(row['Date of Birth'] || "");
+                    return sID === inputId && sDOB === inputDob;
+                });
 
                 if (student) {
-                    renderDashboard(student);
+                    showData(student);
                 } else {
-                    errorMsg.innerText = "No student found with these credentials.";
+                    err.innerText = "Error: Student ID or DOB not found.";
                 }
-            },
-            error: function() {
-                errorMsg.innerText = "Error connecting to database.";
             }
         });
     }
 
-    function renderDashboard(student) {
-        document.getElementById('login-form').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
+    function showData(s) {
+        document.getElementById('loginBox').classList.add('hidden');
+        document.getElementById('dash').classList.remove('hidden');
 
-        // Set Images (using the URL fixer)
-        document.getElementById('photo').src = formatDriveUrl(student['Photo URL']);
-        document.getElementById('signature').src = formatDriveUrl(student['Signature URL']);
-        
-        // Set Header
-        document.getElementById('student-name').innerText = student['Student Name'];
-        document.getElementById('student-class').innerText = `${student['Class']} - ${student['Section']}`;
+        document.getElementById('p_img').src = fixDriveUrl(s['Photo URL']);
+        document.getElementById('p_sig').src = fixDriveUrl(s['Signature URL']);
+        document.getElementById('p_name').innerText = s['Student Name'];
 
-        // Set List of Details
-        const list = document.getElementById('details-list');
-        const fieldsToShow = [
-            ['Roll No', 'Roll No'],
-            ['Father Name', "Father's Name"],
-            ['Phone', 'Phone Number'],
-            ['Email', 'Email ID'],
-            ['DOB', 'Date of Birth']
-        ];
-
-        list.innerHTML = fieldsToShow.map(field => `
+        const fields = ['Class', 'Section', 'Roll No', 'Father\'s Name', 'Phone Number', 'Email ID'];
+        document.getElementById('p_details').innerHTML = fields.map(f => `
             <div class="info-row">
-                <span class="info-label">${field[0]}</span>
-                <span class="info-value">${student[field[1]] || 'N/A'}</span>
+                <span class="label">${f}:</span>
+                <span>${s[f] || 'N/A'}</span>
             </div>
         `).join('');
 
-        // Generate QR Code for the Student ID
-        document.getElementById("qrcode").innerHTML = ""; // Clear old QR
         new QRCode(document.getElementById("qrcode"), {
-            text: `STUDENT_ID:${student['Student ID']}`,
+            text: s['Student ID'],
             width: 100,
-            height: 100,
-            colorDark : "#2c3e50",
-            colorLight : "#ffffff"
+            height: 100
         });
     }
 </script>
-
 </body>
 </html>
