@@ -9,7 +9,6 @@
         :root { --mvm-blue: #1a237e; --mvm-orange: #f57c00; }
         body { font-family: 'Arial', sans-serif; background: #f0f2f5; margin: 0; padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        /* Layout Container */
         .card { background: white; width: 100%; max-width: 420px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); overflow: hidden; position: relative; }
         .hidden { display: none !important; }
         
@@ -19,13 +18,13 @@
         .school-name { font-size: 18px; font-weight: bold; color: var(--mvm-blue); margin: 0; }
         .school-addr { font-size: 10px; color: #666; margin: 5px 0; font-weight: bold; }
         
-        /* Login Form */
+        /* Login Page */
         .login-content { padding: 30px; text-align: center; position: relative; z-index: 2; }
         .title-tag { background: var(--mvm-blue); color: white; padding: 6px 15px; border-radius: 20px; display: inline-block; margin-bottom: 20px; font-size: 13px; font-weight: bold; }
         input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .login-btn { width: 100%; padding: 14px; background: var(--mvm-orange); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
         
-        /* Watermark */
+        /* Watermark (logo.png) */
         .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; opacity: 0.08; z-index: 0; pointer-events: none; }
         
         /* Dashboard Content */
@@ -36,18 +35,15 @@
         .data-table td { padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         .label { font-weight: bold; color: #777; width: 40%; }
         
-        /* Signature Section */
         .sig-section { text-align: center; margin-top: 30px; display: flex; flex-direction: column; align-items: center; }
         .sig-img { max-width: 160px; max-height: 60px; margin-bottom: 5px; background: #fff; }
         .sig-text { font-size: 12px; font-weight: bold; border-top: 1.5px solid #333; width: 180px; padding-top: 4px; color: #222; }
 
         #qrcode { display: flex; justify-content: center; margin: 20px 0; }
         
-        /* Buttons */
         .btn-group { display: flex; gap: 10px; padding: 0 20px 20px; }
         .action-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; font-size: 14px; }
         
-        /* Print Styles */
         @media print {
             body { background: white; padding: 0; }
             .card { box-shadow: none; border: 1px solid #ddd; width: 100%; max-width: 100%; border-radius: 0; }
@@ -60,7 +56,7 @@
 
 <div class="card" id="loginPage">
     <div class="header">
-        <img src="Logo.png" class="school-logo" onerror="this.src='Logo.jpg'; this.onerror=null;">
+        <img src="logo.png" class="school-logo" onerror="this.src='logo.jpg';">
         <div class="school-name">MAHARISHI VIDYA MANDIR, NALBARI</div>
         <div class="school-addr">CBSE CURRICULUM • BATIRAM ROAD, NALBARI, PIN-781335</div>
     </div>
@@ -75,10 +71,10 @@
 </div>
 
 <div class="card hidden" id="dashboard">
-    <img src="Logo.png" class="watermark" onerror="this.src='Logo.jpg'; this.onerror=null;">
+    <img src="logo.png" class="watermark" onerror="this.src='logo.jpg';">
     
     <div class="header">
-        <img src="Logo.png" class="school-logo" style="width: 60px;" onerror="this.src='Logo.jpg'; this.onerror=null;">
+        <img src="logo.png" class="school-logo" style="width: 60px;" onerror="this.src='logo.jpg';">
         <div class="school-name" style="font-size: 16px;">MAHARISHI VIDYA MANDIR, NALBARI</div>
         <div class="school-addr" style="font-size: 9px;">CBSE CURRICULUM • BATIRAM ROAD, NALBARI, PIN-781335</div>
     </div>
@@ -99,7 +95,7 @@
     <div id="qrcode"></div>
     
     <div class="btn-group">
-        <button class="action-btn" style="background:#4CAF50;" onclick="printPDF()">Print / Save PDF</button>
+        <button class="action-btn" style="background:#4CAF50;" onclick="window.print()">Print / Save PDF</button>
         <button class="action-btn" style="background:#555;" onclick="location.reload()">Logout</button>
     </div>
 </div>
@@ -107,20 +103,14 @@
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzuC-IW3al9B62itc1IVHVXsSO9wenrWW5-vDh5KOwCQ692YZizydNoB8091_kqY9EW/exec';
 
-    // Fixed Image Loader for Google Drive (Uses Thumbnail API)
     function getDirectImg(url) {
         if (!url || typeof url !== 'string') return "";
         const idMatch = url.match(/[-\w]{25,}/);
         if (idMatch) {
-            // Using the usercontent thumbnail link which is the most stable method
-            return `https://lh3.googleusercontent.com/d/${idMatch[0]}=s500`;
+            // Updated link format for better 2026 reliability
+            return `https://docs.google.com/uc?export=view&id=${idMatch[0]}`;
         }
         return url;
-    }
-
-    // Fixed PDF Print Function
-    function printPDF() {
-        window.print();
     }
 
     async function handleLogin() {
@@ -128,18 +118,12 @@
         const dob = document.getElementById('dob').value;
         const status = document.getElementById('status');
 
-        if(!sid || !dob) {
-            status.innerText = "Error: Please fill both fields";
-            return;
-        }
-
-        status.style.color = "blue";
-        status.innerText = "Authenticating... Please Wait";
+        if(!sid || !dob) { status.innerText = "Error: Fill all fields"; return; }
+        status.innerText = "Authenticating...";
 
         try {
             const res = await fetch(API_URL);
             const data = await res.json();
-            
             const student = data.find(s => {
                 const sID = String(s["Student ID"] || "").trim();
                 let sDOB = "";
@@ -150,57 +134,31 @@
                 return sID === sid && sDOB === dob;
             });
 
-            if (student) {
-                showDashboard(student);
-            } else {
-                status.style.color = "red";
-                status.innerText = "Invalid Student ID or Date of Birth";
-            }
-        } catch (e) {
-            status.style.color = "red";
-            status.innerText = "Connection Error. Check Internet.";
-        }
+            if (student) { showDashboard(student); } 
+            else { status.innerText = "Invalid ID or Date of Birth"; }
+        } catch (e) { status.innerText = "Connection Error"; }
     }
 
     function showDashboard(s) {
         document.getElementById('loginPage').classList.add('hidden');
-        const dash = document.getElementById('dashboard');
-        dash.classList.remove('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
 
-        // Set Images with new direct link format
         document.getElementById('p_photo').src = getDirectImg(s["Photo URL"]);
         document.getElementById('p_sig').src = getDirectImg(s["Signature URL"]);
-        
         document.getElementById('p_name').innerText = s["Student Name"];
-        document.getElementById('p_id_display').innerText = "ID NO: " + s["Student ID"];
+        document.getElementById('p_id_display').innerText = "ID: " + s["Student ID"];
 
-        const tableRows = [
-            ["Class", s["Class"]],
-            ["Section", s["Section"]],
-            ["Roll No", s["Roll No"]],
-            ["Father's Name", s["Father's Name"]],
-            ["Phone", s["Phone Number"]],
-            ["Email", s["Email ID"]]
+        const rows = [
+            ["Class", s["Class"]], ["Section", s["Section"]], ["Roll No", s["Roll No"]],
+            ["Father's Name", s["Father's Name"]], ["Phone", s["Phone Number"]], ["Email", s["Email ID"]]
         ];
 
-        document.getElementById('details_table').innerHTML = tableRows.map(r => `
-            <tr>
-                <td class="label">${r[0]}</td>
-                <td style="font-weight: bold;">: ${r[1] || '---'}</td>
-            </tr>
+        document.getElementById('details_table').innerHTML = rows.map(r => `
+            <tr><td class="label">${r[0]}</td><td style="font-weight: bold;">: ${r[1] || 'N/A'}</td></tr>
         `).join('');
 
-        // QR Code Generation
-        const qrDiv = document.getElementById("qrcode");
-        qrDiv.innerHTML = "";
-        new QRCode(qrDiv, {
-            text: String(s["Student ID"]),
-            width: 100,
-            height: 100,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
+        document.getElementById("qrcode").innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), { text: String(s["Student ID"]), width: 90, height: 90 });
     }
 </script>
 </body>
