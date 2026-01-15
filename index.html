@@ -3,125 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Portal</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.3.0/papaparse.min.js"></script>
+    <title>Student Identity Portal</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        :root { --primary: #1a73e8; --bg: #f8f9fa; --text: #202124; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        
+        .card { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 400px; box-sizing: border-box; }
         .hidden { display: none; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
-        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .profile-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #1a73e8; margin-bottom: 15px; }
-        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; text-align: left; }
-        .label { font-weight: bold; color: #666; }
-        #status { margin-top: 15px; font-size: 13px; color: #555; font-style: italic; }
-        .sig-img { width: 150px; border-bottom: 1px solid #333; margin-top: 10px; }
+        
+        h2 { text-align: center; margin-top: 0; color: var(--primary); }
+        label { display: block; margin-top: 15px; font-weight: 600; font-size: 14px; }
+        
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #dadce0; border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: border 0.3s; }
+        input:focus { border: 2px solid var(--primary); outline: none; }
+        
+        button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        button:hover { background: #1557b0; }
+        
+        .profile-header { text-align: center; margin-bottom: 20px; position: relative; }
+        .profile-img { width: 130px; height: 130px; border-radius: 12px; object-fit: cover; border: 3px solid #eee; background: #fafafa; }
+        
+        .data-container { margin-top: 20px; border-top: 1px solid #eee; }
+        .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f8f9fa; font-size: 14px; }
+        .data-label { color: #5f6368; font-weight: 500; }
+        .data-value { color: #202124; font-weight: 600; text-align: right; }
+        
+        .signature-box { text-align: center; margin-top: 20px; padding: 10px; background: #fff; border: 1px dashed #ccc; border-radius: 8px; }
+        .signature-img { max-width: 160px; height: auto; display: block; margin: 5px auto; filter: contrast(1.2); }
+        
+        #qrcode { margin-top: 25px; display: flex; justify-content: center; }
+        #status { text-align: center; color: #d93025; font-size: 14px; margin-top: 15px; min-height: 20px; }
+        
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animate: spin 1s linear infinite; display: inline-block; margin-right: 10px; vertical-align: middle; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="card" id="loginBox">
-    <h2>Student Login</h2>
-    <input type="text" id="sid" placeholder="Student ID">
+    <h2>Student Portal</h2>
+    <p style="text-align:center; color:#5f6368; font-size:14px;">Enter details to view dashboard</p>
+    
+    <label>Student ID</label>
+    <input type="text" id="sid" placeholder="e.g. 12345">
+    
+    <label>Date of Birth</label>
     <input type="date" id="dob">
-    <button onclick="login()">Login</button>
-    <div id="status">Ready</div>
+    
+    <button onclick="processLogin()">View My Dashboard</button>
+    <div id="status"></div>
 </div>
 
-<div class="card hidden" id="dash">
-    <img id="p_img" class="profile-img" src="" alt="Photo">
-    <h3 id="p_name"></h3>
-    <div id="p_details"></div>
-    <div style="margin-top:15px">
-        <div class="label">Signature</div>
-        <img id="p_sig" class="sig-img" src="" alt="Signature">
+<div class="card hidden" id="dashboard">
+    <div class="profile-header">
+        <img id="view_photo" class="profile-img" src="" alt="Student Photo">
+        <h3 id="view_name" style="margin: 10px 0 5px 0;"></h3>
+        <p id="view_id_label" style="margin:0; color:var(--primary); font-weight:bold; font-size:14px;"></p>
     </div>
-    <div id="qrcode" style="display:flex; justify-content:center; margin-top:20px;"></div>
-    <button onclick="location.reload()" style="background:#666; margin-top:20px;">Logout</button>
+
+    <div class="data-container" id="view_details">
+        </div>
+
+    <div class="signature-box">
+        <span class="data-label" style="font-size:12px;">Authorized Signature</span>
+        <img id="view_sig" class="signature-img" src="" alt="Signature">
+    </div>
+
+    <div id="qrcode"></div>
+    
+    <button onclick="window.location.reload()" style="background:#5f6368;">Logout</button>
 </div>
 
 <script>
-    // YOUR CSV LINK
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvTXVjYcIzEZtESe3zXl2tGIcwPHam8HMPLbjhoBhLp2Mkp3uc_lI9cx12WCv_01psP1vxnSrO7ReV/pub?output=csv';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzuC-IW3al9B62itc1IVHVXsSO9wenrWW5-vDh5KOwCQ692YZizydNoB8091_kqY9EW/exec';
 
-    function fixDriveUrl(url) {
-        if (!url) return "";
+    // Function to convert Drive links to direct image source
+    function formatDriveUrl(url) {
+        if (!url || typeof url !== 'string') return "";
         const idMatch = url.match(/[-\w]{25,}/);
         return idMatch ? `https://docs.google.com/uc?export=view&id=${idMatch[0]}` : url;
     }
 
-    async function login() {
-        const inputId = document.getElementById('sid').value.trim();
-        const inputDob = document.getElementById('dob').value;
+    // Function to normalize dates for accurate comparison
+    function normalizeDate(dateVal) {
+        if (!dateVal) return "";
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return "";
+        return d.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    }
+
+    async function processLogin() {
+        const idInput = document.getElementById('sid').value.trim();
+        const dobInput = document.getElementById('dob').value;
         const status = document.getElementById('status');
 
-        if (!inputId || !inputDob) {
-            status.innerText = "Error: Please fill all fields";
+        if (!idInput || !dobInput) {
+            status.innerText = "Error: All fields are required.";
             return;
         }
 
-        status.innerText = "Connecting to database...";
+        status.innerHTML = '<div class="loading-spinner"></div> Connecting...';
+        status.style.color = "var(--primary)";
 
         try {
-            // Using Fetch instead of PapaParse directly to catch CORS errors
-            const response = await fetch(CSV_URL);
-            if (!response.ok) throw new Error("Could not reach Google Sheets");
-            
-            const csvText = await response.text();
-            
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    const student = results.data.find(row => {
-                        // Cleanup keys and values to avoid mismatches
-                        const sID = String(row['Student ID'] || "").trim();
-                        const sDOB = row['Date of Birth'] || "";
-                        
-                        // Convert sheet date to YYYY-MM-DD for comparison
-                        const dateObj = new Date(sDOB);
-                        const formattedSheetDate = !isNaN(dateObj) ? dateObj.toISOString().split('T')[0] : "";
-                        
-                        return sID === inputId && formattedSheetDate === inputDob;
-                    });
+            const response = await fetch(API_URL);
+            const students = await response.json();
 
-                    if (student) {
-                        showDashboard(student);
-                    } else {
-                        status.innerText = "Error: Student ID or Date of Birth not found in Sheet.";
-                    }
-                }
+            // Find match
+            const student = students.find(s => {
+                const sheetID = String(s["Student ID"] || "").trim();
+                const sheetDOB = normalizeDate(s["Date of Birth"]);
+                return sheetID === idInput && sheetDOB === dobInput;
             });
 
+            if (student) {
+                renderDashboard(student);
+            } else {
+                status.innerText = "Error: Invalid ID or Date of Birth.";
+                status.style.color = "#d93025";
+            }
         } catch (error) {
-            status.innerHTML = "<b>Connection Failed!</b><br>Make sure your Sheet is 'Published to Web' as a CSV.";
             console.error(error);
+            status.innerText = "Connection Failed. Please check internet.";
+            status.style.color = "#d93025";
         }
     }
 
-    function showDashboard(s) {
+    function renderDashboard(s) {
         document.getElementById('loginBox').classList.add('hidden');
-        document.getElementById('dash').classList.remove('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
 
-        document.getElementById('p_img').src = fixDriveUrl(s['Photo URL']);
-        document.getElementById('p_sig').src = fixDriveUrl(s['Signature URL']);
-        document.getElementById('p_name').innerText = s['Student Name'];
+        // Set Images
+        document.getElementById('view_photo').src = formatDriveUrl(s["Photo URL"]);
+        document.getElementById('view_sig').src = formatDriveUrl(s["Signature URL"]);
+        
+        // Set Header
+        document.getElementById('view_name').innerText = s["Student Name"] || "N/A";
+        document.getElementById('view_id_label').innerText = "ID: " + s["Student ID"];
 
-        const fields = ['Class', 'Section', 'Roll No', 'Father\'s Name', 'Phone Number', 'Email ID'];
-        document.getElementById('p_details').innerHTML = fields.map(f => `
-            <div class="info-row">
-                <span class="label">${f}:</span>
-                <span>${s[f] || 'N/A'}</span>
+        // Set Detail List
+        const fields = [
+            ["Class", s["Class"]],
+            ["Section", s["Section"]],
+            ["Roll No", s["Roll No"]],
+            ["Father's Name", s["Father's Name"]],
+            ["Phone", s["Phone Number"]],
+            ["Email", s["Email ID"]]
+        ];
+
+        document.getElementById('view_details').innerHTML = fields.map(item => `
+            <div class="data-row">
+                <span class="data-label">${item[0]}</span>
+                <span class="data-value">${item[1] || '---'}</span>
             </div>
         `).join('');
 
+        // Generate QR Code
+        document.getElementById("qrcode").innerHTML = "";
         new QRCode(document.getElementById("qrcode"), {
-            text: s['Student ID'],
+            text: `STUDENT_ID:${s["Student ID"]}`,
             width: 100,
-            height: 100
+            height: 100,
+            colorDark : "#202124",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
         });
     }
 </script>
+
 </body>
 </html>
