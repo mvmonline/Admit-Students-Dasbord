@@ -24,10 +24,10 @@
         input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .login-btn { width: 100%; padding: 14px; background: var(--mvm-orange); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
         
-        /* Watermark (logo.png) */
+        /* Watermark */
         .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; opacity: 0.08; z-index: 0; pointer-events: none; }
         
-        /* Dashboard Content */
+        /* Profile Layout */
         .profile-body { padding: 20px; position: relative; z-index: 1; }
         .student-photo { width: 120px; height: 140px; border-radius: 10px; border: 3px solid #eee; object-fit: cover; display: block; margin: 0 auto 15px; background: #fafafa; }
         
@@ -72,7 +72,6 @@
 
 <div class="card hidden" id="dashboard">
     <img src="logo.png" class="watermark" onerror="this.src='logo.jpg';">
-    
     <div class="header">
         <img src="logo.png" class="school-logo" style="width: 60px;" onerror="this.src='logo.jpg';">
         <div class="school-name" style="font-size: 16px;">MAHARISHI VIDYA MANDIR, NALBARI</div>
@@ -103,12 +102,13 @@
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzuC-IW3al9B62itc1IVHVXsSO9wenrWW5-vDh5KOwCQ692YZizydNoB8091_kqY9EW/exec';
 
+    // SOLUTION FOR IMAGE VISIBILITY:
     function getDirectImg(url) {
         if (!url || typeof url !== 'string') return "";
         const idMatch = url.match(/[-\w]{25,}/);
         if (idMatch) {
-            // Updated link format for better 2026 reliability
-            return `https://docs.google.com/uc?export=view&id=${idMatch[0]}`;
+            // This is the specific Google Image server that allows high-res direct display
+            return `https://lh3.googleusercontent.com/d/${idMatch[0]}`;
         }
         return url;
     }
@@ -143,8 +143,10 @@
         document.getElementById('loginPage').classList.add('hidden');
         document.getElementById('dashboard').classList.remove('hidden');
 
+        // Apply corrected image source logic
         document.getElementById('p_photo').src = getDirectImg(s["Photo URL"]);
         document.getElementById('p_sig').src = getDirectImg(s["Signature URL"]);
+        
         document.getElementById('p_name').innerText = s["Student Name"];
         document.getElementById('p_id_display').innerText = "ID: " + s["Student ID"];
 
